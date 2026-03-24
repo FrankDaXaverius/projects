@@ -34,7 +34,11 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import geopandas as gpd
+import json
+try:
+    import geopandas as gpd
+except ModuleNotFoundError:
+    gpd = None
 import folium
 import pyogrio
 from streamlit_folium import st_folium
@@ -62,31 +66,41 @@ st.set_page_config(page_title="ENDI · Planificación",
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-html, body, [class*="css"] {
+
+html, body, [class*="css"], .stApp {
     font-family: 'Inter', sans-serif;
-    color: #1f2937;
+    color: #0f172a !important;
 }
 
-.stApp { background: #f8fafc; }
+body { background: #f8fafc; }
+.stApp { background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%); }
 
 [data-testid="stSidebar"] {
-    background: #ffffff;
-    border-right: 1px solid #e5e7eb;
+    background: #ffffff !important;
+    border-right: 1px solid #e2e8f0;
+}
+[data-testid="stSidebar"] * {
+    color: #0f172a !important;
 }
 
-[data-testid="stSidebar"] * { color: #1f2937 !important; }
+h1, h2, h3, h4, h5, h6, p, span, label, div {
+    color: #0f172a;
+}
+
+small, .stCaption, .stMarkdown p, .stText, .stAlert, .stInfo, .stSuccess, .stWarning {
+    color: #334155 !important;
+}
 
 .hdr {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #e2e8f0;
     border-radius: 18px;
     padding: 24px 28px;
     margin-bottom: 20px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
     position: relative;
     overflow: hidden;
 }
-
 .hdr::after {
     content: "INEC";
     position: absolute;
@@ -95,63 +109,58 @@ html, body, [class*="css"] {
     transform: translateY(-50%);
     font-size: 64px;
     font-weight: 700;
-    color: rgba(37, 99, 235, 0.05);
+    color: rgba(37, 99, 235, 0.06);
     letter-spacing: 4px;
 }
-
 .hdr h1 {
     color: #0f172a !important;
     font-size: 24px !important;
     font-weight: 700 !important;
     margin: 0 0 6px !important;
 }
-
 .hdr p {
-    color: #64748b !important;
+    color: #475569 !important;
     font-size: 13px !important;
     margin: 0 !important;
 }
 
-.kcard, .eq-card, .pi-form {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+.kcard, .eq-card, .pi-form, .stExpander, .stDataFrame, .stTable {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04) !important;
 }
-
-.kcard:hover, .eq-card:hover { border-color: #cbd5e1; }
+.kcard, .eq-card, .pi-form { padding: 16px; }
+.kcard:hover, .eq-card:hover { border-color: #cbd5e1 !important; }
 
 .kcard .v {
     font-size: 26px;
     font-weight: 700;
-    color: #2563eb;
+    color: #1d4ed8;
     line-height: 1;
 }
-
 .kcard .l {
     font-size: 11px;
-    color: #475569;
+    color: #334155;
     margin-top: 6px;
     text-transform: uppercase;
     letter-spacing: .6px;
 }
-
 .kcard .s {
     font-size: 11px;
-    color: #94a3b8;
+    color: #64748b;
     margin-top: 4px;
 }
 
 .step {
     display: inline-block;
     background: #eff6ff;
-    color: #2563eb;
+    color: #1d4ed8;
     border: 1px solid #bfdbfe;
     border-radius: 999px;
     padding: 4px 10px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: .6px;
     margin-bottom: 8px;
 }
@@ -159,10 +168,10 @@ html, body, [class*="css"] {
 .stitle {
     font-size: 12px;
     font-weight: 700;
-    color: #334155;
+    color: #1e293b;
     text-transform: uppercase;
     letter-spacing: 1px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e2e8f0;
     padding-bottom: 8px;
     margin: 20px 0 12px;
 }
@@ -172,11 +181,10 @@ html, body, [class*="css"] {
     padding: 12px 16px;
     margin: 10px 0;
     font-size: 13px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #e2e8f0;
     background: #ffffff;
-    color: #334155;
+    color: #1e293b !important;
 }
-
 .ibox { border-left: 4px solid #2563eb; }
 .wbox { border-left: 4px solid #f59e0b; }
 .bcard { border-left: 4px solid #8b5cf6; }
@@ -184,26 +192,73 @@ html, body, [class*="css"] {
 .pill-ok {
     display: inline-block;
     background: #ecfdf5;
-    color: #16a34a;
+    color: #166534;
     border: 1px solid #bbf7d0;
     border-radius: 999px;
     padding: 3px 10px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
 }
-
 .pill-w {
     display: inline-block;
     background: #fffbeb;
-    color: #d97706;
+    color: #b45309;
     border: 1px solid #fde68a;
     border-radius: 999px;
     padding: 3px 10px;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
-.stDataFrame, .stTable { background: #ffffff; }
+.stButton>button, .stDownloadButton>button {
+    background: #1d4ed8 !important;
+    color: #ffffff !important;
+    border: 1px solid #1d4ed8 !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+}
+.stButton>button:hover, .stDownloadButton>button:hover {
+    background: #1e40af !important;
+    border-color: #1e40af !important;
+}
+
+.stTextInput input, .stNumberInput input, .stDateInput input, .stTextArea textarea {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+}
+.stSelectbox div[data-baseweb="select"] > div,
+.stMultiSelect div[data-baseweb="select"] > div {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+}
+.stSlider label, .stRadio label, .stCheckbox label, .stFileUploader label {
+    color: #0f172a !important;
+    font-weight: 600 !important;
+}
+
+div[data-baseweb="tab-list"] {
+    gap: 8px;
+}
+button[data-baseweb="tab"] {
+    background: #f8fafc !important;
+    color: #334155 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+}
+button[data-baseweb="tab"][aria-selected="true"] {
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+    border-color: #bfdbfe !important;
+}
+
+code {
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 2px 6px;
+    border-radius: 6px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -290,14 +345,24 @@ def detectar_columnas_catalogo(df_cat):
 
 
 def cargar_catalogo_territorial(file_obj):
-    """Carga el Excel/CSV territorial usado para completar el reporte."""
+    """Carga catálogo territorial desde Excel, CSV, TXT o JSON."""
     nombre = getattr(file_obj, 'name', '').lower()
+
     if nombre.endswith('.csv'):
         df_cat = pd.read_csv(file_obj)
-    else:
-        df_cat = pd.read_excel(file_obj)
+        df_cat.columns = [str(c).strip() for c in df_cat.columns]
+        return df_cat, 'tabla'
+
+    if nombre.endswith('.txt') or nombre.endswith('.json'):
+        raw = file_obj.read()
+        if isinstance(raw, bytes):
+            raw = raw.decode('utf-8-sig')
+        data = json.loads(raw)
+        return data, 'dict'
+
+    df_cat = pd.read_excel(file_obj)
     df_cat.columns = [str(c).strip() for c in df_cat.columns]
-    return df_cat
+    return df_cat, 'tabla'
 
 
 def preparar_lookup_territorial(df_cat):
@@ -327,6 +392,48 @@ def preparar_lookup_territorial(df_cat):
             'tipo_txt'         : str(row[cols['tipo_txt']]).strip() if cols.get('tipo_txt') and pd.notna(row[cols['tipo_txt']]) else '',
             'fcode'            : str(row[cols['fcode']]).strip() if cols.get('fcode') and pd.notna(row[cols['fcode']]) else ''
         }
+    return lookup, cols
+
+
+def preparar_lookup_territorial_desde_dict(data_dict):
+    """
+    Convierte el diccionario territorial en un lookup por código parroquial.
+    Soporta archivos .txt o .json con estructura anidada:
+    provincia -> cantones -> parroquias.
+    """
+    if not isinstance(data_dict, dict):
+        return {}, {}
+
+    lookup = {}
+    for prov_cod, prov_data in data_dict.items():
+        prov_cod_n = normalizar_codigo(prov_cod, 2)
+        prov_nom = str((prov_data or {}).get('DPA_DESPRO', '')).strip()
+        cantones = (prov_data or {}).get('cantones', {}) or {}
+        for canton_cod, canton_data in cantones.items():
+            canton_cod_n = normalizar_codigo(canton_cod, 4)
+            canton_nom = str((canton_data or {}).get('DPA_DESCAN', '')).strip()
+            parroquias = (canton_data or {}).get('parroquias', {}) or {}
+            for parroq_cod, parroq_data in parroquias.items():
+                parroq_cod_n = normalizar_codigo(parroq_cod, 6)
+                lookup[parroq_cod_n] = {
+                    'provincia_codigo': prov_cod_n,
+                    'provincia_nombre': prov_nom,
+                    'canton_codigo': canton_cod_n,
+                    'canton_nombre': canton_nom,
+                    'parroquia_codigo': parroq_cod_n,
+                    'parroquia_nombre': str((parroq_data or {}).get('DPA_DESPAR', '')).strip(),
+                    'tipo_txt': '',
+                    'fcode': ''
+                }
+
+    cols = {
+        'prov_cod': 'DICT.PROV',
+        'prov_nom': 'DICT.DPA_DESPRO',
+        'canton_cod': 'DICT.CANTON',
+        'canton_nom': 'DICT.DPA_DESCAN',
+        'parroquia_cod': 'DICT.PARROQUIA',
+        'parroquia_nom': 'DICT.DPA_DESPAR'
+    }
     return lookup, cols
 
 
@@ -493,6 +600,8 @@ def cargar_gpkg(path, dissolve_upm=True):
     - Si dissolve_upm=False, conserva manzanas/sectores individuales.
     - Devuelve puntos representativos en WGS84 para mapa y ruteo.
     """
+    if gpd is None:
+        raise ModuleNotFoundError("geopandas no está instalado en el entorno. Agrégalo al requirements.txt de Streamlit Cloud.")
     capas = pyogrio.list_layers(path)
     man   = gpd.read_file(path,layer=capas[0][0])
     disp  = gpd.read_file(path,layer=capas[1][0])
@@ -906,9 +1015,9 @@ _defs = {
     "personal_info": {},
     "fecha_j1": None, "fecha_j2": None,
     "j1_num": 1, "j2_num": 2,
-    "catalogo_df": None, "catalogo_lookup": {}, "catalogo_cols": {},
+    "catalogo_df": None, "catalogo_lookup": {}, "catalogo_cols": {}, "catalogo_tipo": "",
     "params": {"dias_op":12,"viv_min":50,"viv_max":80,"factor_r":1.5,
-               "peso_viv_equilibrio":0.65,"tol_balance":18,
+               "peso_viv_equilibrio":0.65,"tol_balance":12,
                "usar_bomb":True,"usar_gye":True,"dias_gye":3,"umbral_gye":10},
     "equipos_cfg": [
         {"id":1,"nombre":"Equipo 1","enc":3},
@@ -1173,17 +1282,19 @@ if btn:
         df_no_gye = df_no_gye.copy()
         df_no_gye['cluster_geo'] = km.fit_predict(coords)
 
-        # KMeans arma el esqueleto geográfico; luego hacemos un ajuste fino para
-        # evitar equipos con cargas demasiado disparejas.
-        df_no_gye = rebalancear_clusters_por_proximidad(
-            df_no_gye,
-            n_clusters=n_clust,
-            tolerancia_pct=p.get("tol_balance", 18),
-            peso_viv=p.get("peso_viv_equilibrio", 0.65),
-            max_iter=250
-        )
+        # Primero respetamos el clustering original. Luego aplicamos un ajuste
+        # fino, conservador y opcional para acercar las cargas entre equipos
+        # sin destruir la forma geográfica que KMeans ya construyó.
+        if p.get("tol_balance", 0) > 0:
+            df_no_gye = rebalancear_clusters_por_proximidad(
+                df_no_gye,
+                n_clusters=n_clust,
+                tolerancia_pct=p.get("tol_balance", 18),
+                peso_viv=p.get("peso_viv_equilibrio", 0.65),
+                max_iter=120
+            )
 
-        centroides = df_no_gye.groupby('cluster_geo')[['x','y']].mean()                              .reindex(range(n_clust)).values
+        centroides = df_no_gye.groupby('cluster_geo')[['x','y']].mean().reindex(range(n_clust)).values
 
         if len(df_no_gye) > n_clust:
             try: st.session_state.sil_score = silhouette_score(coords,df_no_gye['cluster_geo'])
@@ -1231,8 +1342,9 @@ if btn:
                 if len(bomb_idx) > 0:
                     df_no_gye.loc[bomb_idx, 'equipo']  = 'Equipo Bombero'
                     df_no_gye.loc[bomb_idx, 'jornada'] = 'Jornada Especial'
-                    bomb_idx_validos = mask_bomb_global.index.intersection(bomb_idx)
+                    bomb_idx_validos = pd.Index(bomb_idx).intersection(mask_bomb_global.index)
                     mask_bomb_global.loc[bomb_idx_validos] = True
+
         df_w.update(df_no_gye[['equipo','jornada','cluster_geo']])
 
     n_bomb = int((df_w['equipo']=='Equipo Bombero').sum())
@@ -1729,30 +1841,40 @@ with tab_reporte:
     st.markdown("<div class='stitle'>Catálogo territorial para completar el Excel</div>",
                 unsafe_allow_html=True)
     st.markdown("""<div class='ibox'>
-    Sube el Excel o CSV con la organización territorial del Ecuador. La app usa
-    ese catálogo para completar provincia, cantón, parroquia y códigos auxiliares
-    en el reporte final.
+    Sube el catálogo territorial del Ecuador. Puede ser una tabla (.xlsx, .xls,
+    .csv) o un diccionario jerárquico (.txt o .json). La app lo usa para
+    completar provincia, cantón, parroquia y códigos auxiliares en el reporte.
     </div>""", unsafe_allow_html=True)
 
     cat_file = st.file_uploader(
-        "Catálogo territorial (.xlsx, .xls o .csv)",
-        type=["xlsx", "xls", "csv"],
+        "Catálogo territorial (.xlsx, .xls, .csv, .txt o .json)",
+        type=["xlsx", "xls", "csv", "txt", "json"],
         key="catalogo_territorial_up"
     )
     if cat_file is not None:
         try:
-            df_cat = cargar_catalogo_territorial(cat_file)
-            lookup_cat, cols_cat = preparar_lookup_territorial(df_cat)
-            st.session_state.catalogo_df = df_cat
+            cat_data, cat_tipo = cargar_catalogo_territorial(cat_file)
+            if cat_tipo == 'dict':
+                lookup_cat, cols_cat = preparar_lookup_territorial_desde_dict(cat_data)
+                total_reg = len(lookup_cat)
+            else:
+                lookup_cat, cols_cat = preparar_lookup_territorial(cat_data)
+                total_reg = len(cat_data)
+
+            st.session_state.catalogo_df = cat_data
             st.session_state.catalogo_lookup = lookup_cat
             st.session_state.catalogo_cols = cols_cat
-            st.success(f"✓ Catálogo cargado: {len(df_cat):,} filas")
+            st.session_state.catalogo_tipo = cat_tipo
+            st.success(f"✓ Catálogo cargado correctamente: {total_reg:,} registros de referencia")
         except Exception as e:
             st.error(f"No se pudo leer el catálogo territorial: {e}")
 
     if st.session_state.catalogo_df is not None:
-        cols_detectadas = {k: v for k, v in st.session_state.catalogo_cols.items() if v}
-        st.caption(f"Columnas detectadas: {cols_detectadas}")
+        if st.session_state.get('catalogo_tipo') == 'dict':
+            st.caption(f"Diccionario territorial cargado: {len(st.session_state.get('catalogo_lookup', {})):,} parroquias indexadas")
+        else:
+            cols_detectadas = {k: v for k, v in st.session_state.catalogo_cols.items() if v}
+            st.caption(f"Columnas detectadas: {cols_detectadas}")
 
     # ── Información de personal ───────────────
     st.markdown("<div class='stitle'>Personal por equipo</div>",unsafe_allow_html=True)
