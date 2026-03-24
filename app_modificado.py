@@ -1231,8 +1231,8 @@ if btn:
                 if len(bomb_idx) > 0:
                     df_no_gye.loc[bomb_idx, 'equipo']  = 'Equipo Bombero'
                     df_no_gye.loc[bomb_idx, 'jornada'] = 'Jornada Especial'
-                    mask_bomb_global.loc[bomb_idx] = True
-
+                    bomb_idx_validos = mask_bomb_global.index.intersection(bomb_idx)
+                    mask_bomb_global.loc[bomb_idx_validos] = True
         df_w.update(df_no_gye[['equipo','jornada','cluster_geo']])
 
     n_bomb = int((df_w['equipo']=='Equipo Bombero').sum())
