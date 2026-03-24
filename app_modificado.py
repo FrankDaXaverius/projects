@@ -711,6 +711,7 @@ for k,v in _defs.items():
 
 # ── SIDEBAR ───────────────────────────────────
 with st.sidebar:
+    st.logo(https://www.ecuadorencifras.gob.ec/documentos/inec37/images/logo5.jpg)
     st.markdown("### 🗺️ Encuesta Nacional")
     st.markdown("<p style='font-size:10px;color:#5b7088;margin-top:-8px'>INEC · Zonal Litoral</p>",
                 unsafe_allow_html=True)
