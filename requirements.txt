@@ -1,0 +1,10 @@
+streamlit
+pandas
+geopandas
+pyogrio
+plotly
+folium
+streamlit-folium
+osmnx
+scikit-learn
+openpyxl
