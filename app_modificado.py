@@ -60,64 +60,164 @@ from openpyxl.utils import get_column_letter
 warnings.filterwarnings('ignore')
 
 # ── PAGE CONFIG ───────────────────────────────
-st.set_page_config(page_title="ENDI · Planificación",
-                   page_icon="🗺️", layout="wide",
+st.set_page_config(page_title="INEC · ENDI Planificación",
+                   page_icon="📊", layout="wide",
                    initial_sidebar_state="expanded")
 
 # ── CSS ───────────────────────────────────────
-st.markdown("""
+INEC_LOGO = "https://upload.wikimedia.org/wikipedia/commons/a/a8/Logo_del_INEC_Ecuador.png"
+
+st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
-html,body,[class*="css"]{font-family:'IBM Plex Sans',sans-serif}
-[data-testid="stSidebar"]{background:#0c0f1a;border-right:1px solid #1e2540}
-[data-testid="stSidebar"] *{color:#d0d8e8 !important}
-.hdr{background:linear-gradient(135deg,#071e3d,#0d3b6e 60%,#0a2a52);
-     border-radius:12px;padding:24px 32px;margin-bottom:20px;
-     border-left:5px solid #2e86de;position:relative;overflow:hidden}
-.hdr::after{content:"INEC";position:absolute;right:24px;top:50%;
-            transform:translateY(-50%);font-family:'IBM Plex Mono',monospace;
-            font-size:76px;font-weight:600;color:rgba(255,255,255,.04);letter-spacing:6px}
-.hdr h1{color:#fff!important;font-size:18px!important;font-weight:600!important;
-        margin:0 0 3px!important;font-family:'IBM Plex Mono',monospace!important}
-.hdr p{color:#7eb3d8!important;font-size:12px!important;margin:0!important}
-.kcard{background:#111827;border:1px solid #1f2d45;border-radius:10px;
-       padding:14px 16px;text-align:center;transition:border-color .2s}
-.kcard:hover{border-color:#2e86de}
-.kcard .v{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;
-          color:#2e86de;line-height:1}
-.kcard .l{font-size:10px;color:#7a8fa6;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
-.kcard .s{font-size:10px;color:#4a6070;margin-top:2px}
-.step{display:inline-block;background:#0d2035;color:#2e86de;border:1px solid #1a4060;
-      border-radius:4px;padding:2px 7px;font-family:'IBM Plex Mono',monospace;
-      font-size:10px;font-weight:600;letter-spacing:1px;margin-bottom:6px}
-.stitle{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#2e86de;
-        text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1f2d45;
-        padding-bottom:7px;margin:18px 0 12px}
-.ibox{background:#0a1f35;border:1px solid #143050;border-left:3px solid #2e86de;
-      border-radius:7px;padding:11px 15px;margin:9px 0;font-size:13px;color:#7eb3d8}
-.wbox{background:#1a1400;border:1px solid #3a2800;border-left:3px solid #f39c12;
-      border-radius:7px;padding:11px 15px;margin:9px 0;font-size:13px;color:#c9a227}
-.bcard{background:#1a0d2e;border:1px solid #3d1a6e;border-left:3px solid #9b59b6;
-       border-radius:7px;padding:13px 16px;margin:9px 0}
-.pill-ok{display:inline-block;background:#0a2e1a;color:#27ae60;border:1px solid #1a5e35;
-         border-radius:20px;padding:2px 9px;font-size:11px;
-         font-family:'IBM Plex Mono',monospace;font-weight:600}
-.pill-w{display:inline-block;background:#1a1500;color:#e67e22;border:1px solid #5a3c00;
-        border-radius:20px;padding:2px 9px;font-size:11px;
-        font-family:'IBM Plex Mono',monospace;font-weight:600}
-.eq-card{background:#0d1520;border:1px solid #1f2d45;border-radius:9px;
-         padding:14px 16px;text-align:center;transition:border-color .2s}
-.eq-card:hover{border-color:#2e86de}
-.pi-form{background:#0d1520;border:1px solid #1f2d45;border-radius:8px;
-         padding:16px;margin-bottom:12px}
-.balance-box{background:#071a10;border:1px solid #0d4020;border-left:3px solid #27ae60;
-             border-radius:7px;padding:11px 15px;margin:9px 0;font-size:12px;color:#5dca8a}
-.jplan-ok  {background:#061a0e;border:1px solid #0d4020;border-left:3px solid #27ae60;
-             border-radius:6px;padding:8px 14px;margin:4px 0;font-size:12px;color:#5dca8a}
-.jplan-mv  {background:#1a1200;border:1px solid #3a2800;border-left:3px solid #f39c12;
-             border-radius:6px;padding:8px 14px;margin:4px 0;font-size:12px;color:#c9a227}
-.jplan-can {background:#1a0800;border:1px solid #3a1000;border-left:3px solid #e74c3c;
-             border-radius:6px;padding:8px 14px;margin:4px 0;font-size:12px;color:#e07060}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ── Base ─────────────────────────────────── */
+html,body,[class*="css"]{{font-family:'Inter',sans-serif;color:#1a1a2e}}
+.main .block-container{{padding-top:2rem}}
+
+/* ── Sidebar ──────────────────────────────── */
+[data-testid="stSidebar"]{{background:#f7f8fb;border-right:1px solid #e2e6ed}}
+[data-testid="stSidebar"] *{{color:#2d3348 !important}}
+[data-testid="stSidebar"] .stDivider{{border-color:#e2e6ed !important}}
+
+/* ── Header ───────────────────────────────── */
+.hdr{{
+  background:#ffffff;
+  border-radius:10px;padding:20px 28px;margin-bottom:24px;
+  border:1px solid #e2e6ed;border-left:4px solid #003B71;
+  display:flex;align-items:center;gap:20px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04)
+}}
+.hdr img{{height:52px;flex-shrink:0}}
+.hdr-text h1{{color:#003B71!important;font-size:17px!important;font-weight:600!important;
+              margin:0 0 2px!important;font-family:'JetBrains Mono',monospace!important;
+              letter-spacing:-.3px}}
+.hdr-text p{{color:#6b7a90!important;font-size:12px!important;margin:0!important;font-weight:400}}
+
+/* ── KPI cards ────────────────────────────── */
+.kcard{{
+  background:#ffffff;border:1px solid #e2e6ed;border-radius:10px;
+  padding:16px;text-align:center;transition:box-shadow .2s;
+  box-shadow:0 1px 2px rgba(0,0,0,.03)
+}}
+.kcard:hover{{box-shadow:0 3px 12px rgba(0,59,113,.08)}}
+.kcard .v{{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;
+           color:#003B71;line-height:1}}
+.kcard .l{{font-size:10px;color:#8896a6;margin-top:5px;text-transform:uppercase;
+           letter-spacing:.6px;font-weight:500}}
+.kcard .s{{font-size:10px;color:#a8b5c0;margin-top:2px}}
+
+/* ── Step badges ──────────────────────────── */
+.step{{
+  display:inline-block;background:#eef3fa;color:#003B71;border:1px solid #d0daea;
+  border-radius:4px;padding:2px 8px;font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:600;letter-spacing:.8px;margin-bottom:6px
+}}
+
+/* ── Section titles ───────────────────────── */
+.stitle{{
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  color:#003B71;text-transform:uppercase;letter-spacing:1px;
+  border-bottom:2px solid #e2e6ed;padding-bottom:8px;margin:22px 0 14px
+}}
+
+/* ── Info box ─────────────────────────────── */
+.ibox{{
+  background:#f0f6ff;border:1px solid #d0daea;border-left:3px solid #003B71;
+  border-radius:7px;padding:12px 16px;margin:9px 0;font-size:13px;color:#2d4a6f
+}}
+
+/* ── Warning box ──────────────────────────── */
+.wbox{{
+  background:#fffbf0;border:1px solid #f0deb0;border-left:3px solid #e6a817;
+  border-radius:7px;padding:12px 16px;margin:9px 0;font-size:13px;color:#7a5c10
+}}
+
+/* ── Bombero card ─────────────────────────── */
+.bcard{{
+  background:#faf5ff;border:1px solid #e4d5f5;border-left:3px solid #7c3aed;
+  border-radius:7px;padding:13px 16px;margin:9px 0
+}}
+
+/* ── Pills ────────────────────────────────── */
+.pill-ok{{
+  display:inline-block;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;
+  border-radius:20px;padding:2px 10px;font-size:11px;
+  font-family:'JetBrains Mono',monospace;font-weight:600
+}}
+.pill-w{{
+  display:inline-block;background:#fffbeb;color:#b45309;border:1px solid #fde68a;
+  border-radius:20px;padding:2px 10px;font-size:11px;
+  font-family:'JetBrains Mono',monospace;font-weight:600
+}}
+
+/* ── Equipo card ──────────────────────────── */
+.eq-card{{
+  background:#ffffff;border:1px solid #e2e6ed;border-radius:9px;
+  padding:14px 16px;text-align:center;transition:box-shadow .2s;
+  box-shadow:0 1px 2px rgba(0,0,0,.03)
+}}
+.eq-card:hover{{box-shadow:0 3px 12px rgba(0,59,113,.08)}}
+
+/* ── Personal info form ───────────────────── */
+.pi-form{{
+  background:#fafbfc;border:1px solid #e2e6ed;border-radius:8px;
+  padding:16px;margin-bottom:12px
+}}
+
+/* ── Balance box ──────────────────────────── */
+.balance-box{{
+  background:#ecfdf5;border:1px solid #a7f3d0;border-left:3px solid #059669;
+  border-radius:7px;padding:12px 16px;margin:9px 0;font-size:12px;color:#065f46
+}}
+
+/* ── Jornada planning ─────────────────────── */
+.jplan-ok{{
+  background:#ecfdf5;border:1px solid #a7f3d0;border-left:3px solid #059669;
+  border-radius:6px;padding:8px 14px;margin:4px 0;font-size:12px;color:#065f46
+}}
+.jplan-mv{{
+  background:#fffbeb;border:1px solid #fde68a;border-left:3px solid #d97706;
+  border-radius:6px;padding:8px 14px;margin:4px 0;font-size:12px;color:#92400e
+}}
+.jplan-can{{
+  background:#fef2f2;border:1px solid #fecaca;border-left:3px solid #dc2626;
+  border-radius:6px;padding:8px 14px;margin:4px 0;font-size:12px;color:#991b1b
+}}
+
+/* ── Streamlit overrides ──────────────────── */
+.stTabs [data-baseweb="tab-list"]{{
+  gap:0;border-bottom:2px solid #e2e6ed
+}}
+.stTabs [data-baseweb="tab"]{{
+  color:#6b7a90;font-weight:500;font-size:13px;
+  padding:10px 20px;border-bottom:2px solid transparent
+}}
+.stTabs [aria-selected="true"]{{
+  color:#003B71!important;border-bottom:2px solid #003B71!important;
+  font-weight:600
+}}
+button[kind="primary"]{{
+  background:#003B71!important;border:none!important;
+  font-weight:600!important;letter-spacing:.3px
+}}
+button[kind="primary"]:hover{{
+  background:#00508f!important
+}}
+
+/* ── Sidebar logo ─────────────────────────── */
+.sidebar-logo{{
+  display:flex;align-items:center;gap:12px;
+  padding:4px 0 12px;margin-bottom:4px
+}}
+.sidebar-logo img{{height:40px}}
+.sidebar-logo .sidebar-title{{
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  font-weight:600;color:#003B71!important;line-height:1.3
+}}
+.sidebar-logo .sidebar-sub{{
+  font-size:10px;color:#8896a6!important;margin-top:2px;font-weight:400
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -133,8 +233,8 @@ MESES_CAL = {
     7:"Julio",8:"Agosto",9:"Septiembre",10:"Octubre",11:"Noviembre",12:"Diciembre"
 }
 
-COLORES  = ['#e74c3c','#2e86de','#27ae60','#f39c12','#9b59b6',
-            '#1abc9c','#e67e22','#e91e63']
+COLORES  = ['#dc2626','#003B71','#059669','#d97706','#7c3aed',
+            '#0891b2','#c2410c','#be185d']
 
 # ── HELPERS ───────────────────────────────────
 def cv_pct(s):
@@ -771,9 +871,13 @@ for k,v in _defs.items():
 #  SIDEBAR
 # ══════════════════════════════════════════════════════════════════════════════
 with st.sidebar:
-    st.markdown("### 🗺️ Encuesta Nacional")
-    st.markdown("<p style='font-size:10px;color:#445566;margin-top:-8px'>INEC · Zonal Litoral</p>",
-                unsafe_allow_html=True)
+    st.markdown(f"""<div class='sidebar-logo'>
+        <img src='{INEC_LOGO}' alt='INEC'>
+        <div>
+            <div class='sidebar-title'>Encuesta Nacional</div>
+            <div class='sidebar-sub'>INEC · Zonal Litoral</div>
+        </div>
+    </div>""", unsafe_allow_html=True)
     st.divider()
 
     # PASO 1 — GeoPackage
@@ -844,11 +948,11 @@ with st.sidebar:
 
         j1_n,j2_n,mes_nom=jornada_num_desde_mes(int(mes_sel),mes_ini_cal)
         st.markdown(f"""
-        <div style='font-size:11px;background:#0d2035;border-radius:6px;
-                    padding:8px 12px;border-left:3px solid #2e86de;margin-top:6px'>
+        <div style='font-size:11px;background:#f0f6ff;border-radius:6px;color:#2d4a6f;
+                    padding:8px 12px;border-left:3px solid #003B71;margin-top:6px'>
         📅 Mes {int(mes_sel)} ({mes_nom}) →
-        <b style='color:#2e86de'>Jornada {j1_n}</b> +
-        <b style='color:#27ae60'>Jornada {j2_n}</b>
+        <b style='color:#003B71'>Jornada {j1_n}</b> +
+        <b style='color:#059669'>Jornada {j2_n}</b>
         </div>""",unsafe_allow_html=True)
 
         st.divider()
@@ -901,18 +1005,21 @@ with st.sidebar:
         tot_enc=sum(e["enc"] for e in st.session_state.equipos_cfg)
         tot_viv=int(df_mes["viv"].sum()) if len(df_mes)>0 else 0
         st.markdown(f"""
-        <div style='font-size:11px;color:#445566;line-height:2;margin-top:8px'>
-        📍 <b style='color:#7eb3d8'>{len(df_mes):,}</b> UPMs · mes {int(mes_sel)}<br>
-        🏠 <b style='color:#7eb3d8'>{tot_viv:,}</b> viviendas<br>
-        👥 <b style='color:#7eb3d8'>{len(st.session_state.equipos_cfg)}</b> equipos ·
-           <b style='color:#7eb3d8'>{tot_enc}</b> enc.
+        <div style='font-size:11px;color:#4a5568;line-height:2;margin-top:8px'>
+        📍 <b style='color:#003B71'>{len(df_mes):,}</b> UPMs · mes {int(mes_sel)}<br>
+        🏠 <b style='color:#003B71'>{tot_viv:,}</b> viviendas<br>
+        👥 <b style='color:#003B71'>{len(st.session_state.equipos_cfg)}</b> equipos ·
+           <b style='color:#003B71'>{tot_enc}</b> enc.
         </div>""",unsafe_allow_html=True)
 
 # ── HEADER ────────────────────────────────────
-st.markdown("""
+st.markdown(f"""
 <div class='hdr'>
-  <h1>Planificación Automática · Actualización Cartográfica · v5</h1>
-  <p>Encuesta Nacional &nbsp;·&nbsp; Zonal Litoral &nbsp;·&nbsp; INEC Ecuador</p>
+  <img src='{INEC_LOGO}' alt='INEC'>
+  <div class='hdr-text'>
+    <h1>Planificación Automática · Actualización Cartográfica</h1>
+    <p>Instituto Nacional de Estadística y Censos &nbsp;·&nbsp; Zonal Litoral &nbsp;·&nbsp; ENDI 2025</p>
+  </div>
 </div>""",unsafe_allow_html=True)
 
 if st.session_state.data_raw is None:
@@ -926,12 +1033,12 @@ if df is None or len(df)==0:
 
 p=st.session_state.params
 k1,k2,k3,k4,k5=st.columns(5)
-cv_v=cv_pct(df["viv"]); cv_c="#27ae60" if cv_v<50 else "#e74c3c"
+cv_v=cv_pct(df["viv"]); cv_c="#059669" if cv_v<50 else "#dc2626"
 for col,(val,lbl,sub,c) in zip([k1,k2,k3,k4,k5],[
-    (f"{len(df):,}","UPMs",f"mes {int(df['mes'].iloc[0])}","#2e86de"),
-    (f"{int(df['viv'].sum()):,}","Viviendas","precenso 2020","#2e86de"),
-    (f"{len(df[df['tipo_entidad'].isin(['man','man_upm'])]):,}","Amanzanadas","man/man_upm","#2e86de"),
-    (f"{len(df[df['tipo_entidad'].isin(['sec','sec_upm'])]):,}","Dispersas","sec/sec_upm","#2e86de"),
+    (f"{len(df):,}","UPMs",f"mes {int(df['mes'].iloc[0])}","#003B71"),
+    (f"{int(df['viv'].sum()):,}","Viviendas","precenso 2020","#003B71"),
+    (f"{len(df[df['tipo_entidad'].isin(['man','man_upm'])]):,}","Amanzanadas","man/man_upm","#003B71"),
+    (f"{len(df[df['tipo_entidad'].isin(['sec','sec_upm'])]):,}","Dispersas","sec/sec_upm","#003B71"),
     (f"{cv_v:.1f}%","CV viviendas","dispersión",cv_c),
 ]):
     with col:
@@ -1223,7 +1330,7 @@ j1_n,j2_n,mes_nom=jornada_num_desde_mes(
     int(df['mes'].iloc[0]), st.session_state.mes_inicio_cal)
 
 color_map={n:COLORES[i%len(COLORES)] for i,n in enumerate(nombres)}
-color_map['Equipo Bombero']='#9b59b6'
+color_map['Equipo Bombero']='#7c3aed'
 
 tab_mapa,tab_analisis,tab_plan,tab_reporte=st.tabs([
     "🗺️  Mapa de Rutas","📊  Análisis de Carga",
@@ -1240,14 +1347,14 @@ with tab_mapa:
         n_b=int((df_plan['equipo']=='Equipo Bombero').sum())
         mbm=st.checkbox(f"Equipo Bombero ({n_b})",value=True)
         mrts=st.checkbox("Mostrar rutas",value=True)
-        fnd=st.selectbox("Fondo",["CartoDB dark_matter","CartoDB positron","OpenStreetMap"])
+        fnd=st.selectbox("Fondo",["CartoDB positron","OpenStreetMap","CartoDB dark_matter"])
         st.divider()
         st.markdown("**Leyenda:**")
         for n,c in color_map.items():
             if n in nombres:
                 st.markdown(f"<span style='color:{c};font-size:17px'>●</span> {n}",
                             unsafe_allow_html=True)
-        st.markdown(f"<span style='color:#9b59b6;font-size:17px'>●</span> Equipo Bombero ({n_b})",
+        st.markdown(f"<span style='color:#7c3aed;font-size:17px'>●</span> Equipo Bombero ({n_b})",
                     unsafe_allow_html=True)
     with cc2:
         m=folium.Map(location=[BASE_LAT,BASE_LON],zoom_start=8,tiles=fnd)
@@ -1294,17 +1401,17 @@ with tab_analisis:
 
     if cv_ini is not None and cv_fin is not None:
         mejora=cv_ini-cv_fin
-        cc_m="#27ae60" if mejora>5 else ("#f39c12" if mejora>0 else "#e74c3c")
+        cc_m="#059669" if mejora>5 else ("#d97706" if mejora>0 else "#dc2626")
         modo_fin=next((l.get('modo','') for l in reversed(bal_log)
                       if 'objetivo' in l.get('modo','') or 'plateau' in l.get('modo','')
                       or 'sin mejora' in l.get('modo','')),'-')
         st.markdown(f"""
         <div class='balance-box'>
         <b>CV inicial (KMeans puro):</b>
-        <span style='color:#e74c3c;font-family:monospace'>{cv_ini:.1f}%</span>
+        <span style='color:#dc2626;font-family:monospace'>{cv_ini:.1f}%</span>
         &nbsp;→&nbsp;
         <b>CV final (rebalanceo):</b>
-        <span style='color:#27ae60;font-family:monospace'>{cv_fin:.1f}%</span>
+        <span style='color:#059669;font-family:monospace'>{cv_fin:.1f}%</span>
         &nbsp;&nbsp;<b style='color:{cc_m}'>Δ {mejora:.1f} pp</b><br>
         <span style='font-size:11px'>
         Parada: <i>{modo_fin}</i> ·
@@ -1323,10 +1430,10 @@ with tab_analisis:
         })
         fig_comp=px.bar(df_comp,x='Cluster',y='Carga pond.',color='Fase',
                         barmode='group',title='Carga por cluster — antes vs después',
-                        template='plotly_dark',
-                        color_discrete_map={'Antes (KMeans)':'#e74c3c',
-                                            'Después (rebalanceo)':'#27ae60'})
-        fig_comp.update_layout(paper_bgcolor="#111827",plot_bgcolor="#0a1020",
+                        template='plotly_white',
+                        color_discrete_map={'Antes (KMeans)':'#dc2626',
+                                            'Después (rebalanceo)':'#059669'})
+        fig_comp.update_layout(paper_bgcolor="#ffffff",plot_bgcolor="#fafbfc",
                                title_font_size=12)
         st.plotly_chart(fig_comp,use_container_width=True)
         with st.expander("Historial de iteraciones"):
@@ -1345,8 +1452,8 @@ with tab_analisis:
             st.markdown(f"<div class='ibox'><b>{jornada}:</b> 1 equipo.</div>",
                         unsafe_allow_html=True); continue
         cr=cv_pct(sub['viv_reales']); cp=cv_pct(sub['carga_ponderada'])
-        ccr="#27ae60" if cr<20 else ("#f39c12" if cr<40 else "#e74c3c")
-        ccp="#27ae60" if cp<20 else ("#f39c12" if cp<40 else "#e74c3c")
+        ccr="#059669" if cr<20 else ("#d97706" if cr<40 else "#dc2626")
+        ccp="#059669" if cp<20 else ("#d97706" if cp<40 else "#dc2626")
         em="✓" if cp<20 else ("⚠" if cp<40 else "✗")
         st.markdown(f"""<div class='ibox'><b>{jornada}</b><br>
         &nbsp;&nbsp;CV viv. reales: <span style='color:{ccr};font-family:monospace;
@@ -1363,15 +1470,15 @@ with tab_analisis:
     for col_e,nombre_eq in zip(cols_e,eq_act):
         sub_e=df_plan[df_plan['equipo']==nombre_eq]
         vt=int(sub_e['viv'].sum()); cv_e=cv_pct(sub_e['carga_pond'])
-        ce=color_map.get(nombre_eq,'#2e86de')
-        ccv="#27ae60" if cv_e<20 else ("#f39c12" if cv_e<40 else "#e74c3c")
+        ce=color_map.get(nombre_eq,'#003B71')
+        ccv="#059669" if cv_e<20 else ("#d97706" if cv_e<40 else "#dc2626")
         with col_e:
             st.markdown(f"""<div class='eq-card' style='border-color:{ce}55'>
               <div style='width:10px;height:10px;background:{ce};border-radius:50%;margin:0 auto 7px'></div>
-              <div style='font-family:"IBM Plex Mono",monospace;font-size:12px;
+              <div style='font-family:"JetBrains Mono",monospace;font-size:12px;
                           color:{ce};font-weight:600'>{nombre_eq}</div>
-              <div style='font-size:17px;font-weight:600;color:#d0d8e8;margin:4px 0'>{vt:,}</div>
-              <div style='font-size:10px;color:#7a8fa6'>viviendas</div>
+              <div style='font-size:17px;font-weight:600;color:#1a1a2e;margin:4px 0'>{vt:,}</div>
+              <div style='font-size:10px;color:#8896a6'>viviendas</div>
               <div style='font-size:11px;color:{ccv};margin-top:4px'>CV {cv_e:.1f}%</div>
             </div>""",unsafe_allow_html=True)
 
@@ -1385,15 +1492,15 @@ with tab_analisis:
     cd1,cd2=st.columns(2)
     with cd1:
         fig=px.bar(df_enc,x='encuestador',y='viv_reales',color='jornada',barmode='group',
-                   title=f'Viviendas — {eq_sel}',template='plotly_dark',
-                   color_discrete_sequence=['#2e86de','#27ae60'])
-        fig.update_layout(paper_bgcolor="#111827",plot_bgcolor="#0a1020",title_font_size=12)
+                   title=f'Viviendas — {eq_sel}',template='plotly_white',
+                   color_discrete_sequence=['#003B71','#059669'])
+        fig.update_layout(paper_bgcolor="#ffffff",plot_bgcolor="#fafbfc",title_font_size=12)
         st.plotly_chart(fig,use_container_width=True)
     with cd2:
         fig2=px.bar(df_enc,x='encuestador',y='carga_pond',color='jornada',barmode='group',
-                    title=f'Carga pond. — {eq_sel}',template='plotly_dark',
-                    color_discrete_sequence=['#e74c3c','#f39c12'])
-        fig2.update_layout(paper_bgcolor="#111827",plot_bgcolor="#0a1020",title_font_size=12)
+                    title=f'Carga pond. — {eq_sel}',template='plotly_white',
+                    color_discrete_sequence=['#dc2626','#d97706'])
+        fig2.update_layout(paper_bgcolor="#ffffff",plot_bgcolor="#fafbfc",title_font_size=12)
         st.plotly_chart(fig2,use_container_width=True)
 
     # Distribución diaria
@@ -1422,14 +1529,14 @@ with tab_analisis:
         fig_d=px.bar(pivot,x='dia_rel',y='viv',color='equipo',barmode='group',
                      title=f'Viv/día — {jor_filtro}',
                      labels={'dia_rel':'Día','viv':'Viviendas'},
-                     template='plotly_dark',color_discrete_map=color_map)
+                     template='plotly_white',color_discrete_map=color_map)
         tot_enc_f=sum(e["enc"] for e in eq_cfg if e["nombre"] in eq_act)
         avg_enc_f=tot_enc_f/max(1,len(eq_act))
-        fig_d.add_hline(y=p["viv_min"]*avg_enc_f,line_dash="dot",line_color="#f39c12",
+        fig_d.add_hline(y=p["viv_min"]*avg_enc_f,line_dash="dot",line_color="#d97706",
                         annotation_text=f"Mín ({p['viv_min']})")
-        fig_d.add_hline(y=p["viv_max"]*avg_enc_f,line_dash="dot",line_color="#e74c3c",
+        fig_d.add_hline(y=p["viv_max"]*avg_enc_f,line_dash="dot",line_color="#dc2626",
                         annotation_text=f"Máx ({p['viv_max']})")
-        fig_d.update_layout(paper_bgcolor="#111827",plot_bgcolor="#0a1020",
+        fig_d.update_layout(paper_bgcolor="#ffffff",plot_bgcolor="#fafbfc",
                             xaxis=dict(dtick=1))
         st.plotly_chart(fig_d,use_container_width=True)
         if jor_filtro!="Ambas":
@@ -1437,10 +1544,10 @@ with tab_analisis:
             piv_enc['encuestador']="Enc. "+piv_enc['encuestador'].astype(str)
             fig_enc=px.line(piv_enc,x='dia_rel',y='viv',color='encuestador',markers=True,
                             title=f'Carga diaria por encuestador — {jor_filtro}',
-                            template='plotly_dark')
-            fig_enc.add_hline(y=p["viv_min"],line_dash="dot",line_color="#f39c12")
-            fig_enc.add_hline(y=p["viv_max"],line_dash="dot",line_color="#e74c3c")
-            fig_enc.update_layout(paper_bgcolor="#111827",plot_bgcolor="#0a1020",
+                            template='plotly_white')
+            fig_enc.add_hline(y=p["viv_min"],line_dash="dot",line_color="#d97706")
+            fig_enc.add_hline(y=p["viv_max"],line_dash="dot",line_color="#dc2626")
+            fig_enc.update_layout(paper_bgcolor="#ffffff",plot_bgcolor="#fafbfc",
                                   xaxis=dict(dtick=1))
             st.plotly_chart(fig_enc,use_container_width=True)
 
@@ -1449,10 +1556,10 @@ with tab_analisis:
     n_bm=st.session_state.n_bombero
     st.markdown("<div class='stitle'>Equipo Bombero</div>",unsafe_allow_html=True)
     if n_bm==0:
-        st.markdown("<div class='bcard'><b style='color:#9b59b6'>Equipo Bombero</b> — 0 UPMs.</div>",
+        st.markdown("<div class='bcard'><b style='color:#7c3aed'>Equipo Bombero</b> — 0 UPMs.</div>",
                     unsafe_allow_html=True)
     else:
-        st.markdown(f"<div class='bcard'><b style='color:#9b59b6'>Equipo Bombero</b> — {n_bm} UPMs · "
+        st.markdown(f"<div class='bcard'><b style='color:#7c3aed'>Equipo Bombero</b> — {n_bm} UPMs · "
                     f"{int(df_bm['viv'].sum()):,} viv</div>",unsafe_allow_html=True)
         st.dataframe(df_bm[['id_entidad','tipo_entidad','viv','lat','lon','dist_base_m']]
             .sort_values('dist_base_m',ascending=False).reset_index(drop=True),
